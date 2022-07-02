@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
+from transformers import GPT2Tokenizer, GPT2LMHeadModel
 import torch
-
+from tqdm import tqdm, trange
 
 app = Flask(__name__)
 
@@ -11,14 +12,15 @@ def index():
 @app.route('/', methods=['POST'])
 def formInput():
     text = request.form['text']
-    print(text)
-    return render_template('index.html', oldInput = text, newLyrics = text + "resultwefn urwibhiwufw euiore2or oeirhe20or oehri2oebr oeirhoeb oierhoerbh oehroie2hro oeiufewo")
+    modelOutput = generate(model, tokenizer, text)
+    return render_template('index.html', oldInput = text, newLyrics = modelOutput)
 
 def generate(model, tokenizer, prompt, entryCount=1, entryLength=75, topP=0.8, temp=1.0):
 
     model.eval()
     generatedList = []
     filterVal = -float("Inf")
+    generatedNum = 0
 
     with torch.no_grad():
 
@@ -52,7 +54,7 @@ def generate(model, tokenizer, prompt, entryCount=1, entryLength=75, topP=0.8, t
 
                 if entryFin:
 
-                    generated_num = generated_num + 1
+                    generatedNum += 1
 
                     output_list = list(generated.squeeze().numpy())
                     output_text = tokenizer.decode(output_list)
@@ -61,9 +63,14 @@ def generate(model, tokenizer, prompt, entryCount=1, entryLength=75, topP=0.8, t
             
             if not entryFin:
               output_list = list(generated.squeeze().numpy())
-              output_text = f"{tokenizer.decode(output_list)}" 
+              output_text = f"{tokenizer.decode(output_list)}<|endoftext|>" 
               generatedList.append(output_text)
                 
     return generatedList[0]
+
 if __name__ == "__main__":
+    global model; global tokenizer
+    tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+    model = GPT2LMHeadModel.from_pretrained('gpt2')
+    model.load_state_dict(torch.load('modelWeights.pt', map_location=torch.device('cpu')))
     app.run(debug=True)
