@@ -1,5 +1,9 @@
 # Queen-Songwriter
  
+## How the app looks and background info about it
+
+[Video of app running and background](https://devpost.com/software/queen-songwriter)
+
 ## How to run it?
 
 1. Run the QueenSongWriterModel.ipynb (may need to install the packages imported) file to generate the model whose weights will be saved to your Google Drive account. Feel free to change the path names. 
